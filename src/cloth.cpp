@@ -31,13 +31,13 @@ Cloth::~Cloth() {
 }
 
 void Cloth::buildGrid() {
-  // TODO (Part 1): Build a grid of masses and springs.
+   // Build point masses
   for (int y = 0; y < num_height_points; y++) {
     for (int x = 0; x < num_width_points; x++) {
-      double rand_offset = rand() * 1.0f / RAND_MAX / 1000.0f;
-
       Vector3D pos;
+      double rand_offset;
       if (orientation == VERTICAL) {
+        rand_offset = rand() * 1.0f / RAND_MAX / 1000.0f;
         pos = Vector3D((double)(x * width) / num_width_points,
                        (double)(y * height) / num_height_points, rand_offset);
       } else {
@@ -45,6 +45,7 @@ void Cloth::buildGrid() {
                        (double)(y * height) / num_height_points);
       }
 
+      // Check if it is within pinned vector of this cloth
       bool is_pinned = false;
       for (int i = 0; i < pinned.size(); i++) {
         vector<int> test = {x, y};
@@ -53,46 +54,48 @@ void Cloth::buildGrid() {
         }
       }
 
+      // Build point pass, add to point mass vector of this cloth
       PointMass pm(pos, is_pinned);
       point_masses.push_back(pm);
     }
   }
 
+  // Build springs
   for (int y = 0; y < num_height_points; y++) {
     for (int x = 0; x < num_width_points; x++) {
-      int idx = y * num_width_points + x;
+      int idx = y * num_width_points + x; // Row-major order
       PointMass *pm = &point_masses[idx];
 
       // Structural constraints
       if (x != 0) {
-        Spring s(pm, pm - 1, STRUCTURAL);
+        Spring s(pm, pm - 1, STRUCTURAL); // to the left
         springs.push_back(s);
       }
 
       if (y != 0) {
-        Spring s(pm, pm - num_width_points, STRUCTURAL);
+        Spring s(pm, pm - num_width_points, STRUCTURAL); // on top
         springs.push_back(s);
       }
 
       // Shear constraints
       if (x > 0 && y > 0) {
-        Spring s(pm, pm - num_width_points - 1, SHEARING);
+        Spring s(pm, pm - num_width_points - 1, SHEARING); // upper left
         springs.push_back(s);
       }
 
       if (x < num_width_points - 1 && y > 0) {
-        Spring s(pm, pm - num_width_points + 1, SHEARING);
+        Spring s(pm, pm - num_width_points + 1, SHEARING); // upper right
         springs.push_back(s);
       }
 
       // Bending constraints
       if (y > 1) {
-        Spring s(pm, pm - 2 * num_width_points, BENDING);
+        Spring s(pm, pm - 2 * num_width_points, BENDING); // left two
         springs.push_back(s);
       }
 
       if (x < num_width_points - 2) {
-        Spring s(pm, pm + 2, BENDING);
+        Spring s(pm, pm + 2, BENDING); // up two
         springs.push_back(s);
       }
     }
