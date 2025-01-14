@@ -146,9 +146,19 @@ void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParame
   }
 
 
-
   // TODO (Part 2): Use Verlet integration to compute new point mass positions
+  for (auto &pm : point_masses) {
+    if (!pm.pinned) {
+      Vector3D acceleration = pm.forces / mass;
+      Vector3D new_position =
+          pm.position +
+          (1 - cp->damping / 100) * (pm.position - pm.last_position) +
+          acceleration * delta_t * delta_t;
 
+      pm.last_position = pm.position;
+      pm.position = new_position;
+    }
+  }
 
   // TODO (Part 4): Handle self-collisions.
 
