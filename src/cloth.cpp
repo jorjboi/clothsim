@@ -109,6 +109,42 @@ void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParame
   double delta_t = 1.0f / frames_per_sec / simulation_steps;
 
   // TODO (Part 2): Compute total force acting on each point mass.
+  
+  // Sum all external forces
+  Vector3D external_forces(0, 0, 0);
+  for (auto accel : external_accelerations) {
+    external_forces += accel * mass;
+  }
+  // Reset all existing forces on point masses
+  for (auto &pm : point_masses) {
+    pm.forces.x = external_forces.x;
+    pm.forces.y = external_forces.y;
+    pm.forces.z = external_forces.z;
+  }
+
+  // Compute and accumulate spring correction forces into each point mass
+  for (auto &s : springs) {
+    if ((s.spring_type == STRUCTURAL && !cp->enable_structural_constraints) ||
+        (s.spring_type == SHEARING && !cp->enable_shearing_constraints) ||
+        (s.spring_type == BENDING && !cp->enable_bending_constraints)) {
+      continue;
+    }
+
+    // Use Hooke's law to calculate the force on either point mass
+    Vector3D diff = s.pm_b->position - s.pm_a->position;
+    Vector3D normalized_diff = diff.unit(); // Positive unit direction vector
+
+    double correction = cp->ks * (diff.norm() - s.rest_length); // F = kx 
+
+    if (s.spring_type == BENDING) {
+        correction *= 0.2f;
+    }
+
+    Vector3D spring_force = normalized_diff * correction; // Force vector (positive)
+    s.pm_a->forces += spring_force;
+    s.pm_b->forces -= spring_force;
+  }
+
 
 
   // TODO (Part 2): Use Verlet integration to compute new point mass positions
