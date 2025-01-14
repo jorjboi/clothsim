@@ -168,7 +168,24 @@ void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParame
 
   // TODO (Part 2): Constrain the changes to be such that the spring does not change
   // in length more than 10% per timestep [Provot 1995].
+    for (auto &s : springs) {
+      Vector3D pb_to_pa = s.pm_a->position - s.pm_b->position;
+      float distance = pb_to_pa.norm();
 
+      float maximum_deformation = s.rest_length * 1.1;
+      if (distance > maximum_deformation) {
+        Vector3D correction = pb_to_pa.unit() * (distance - maximum_deformation);
+
+        if (s.pm_a->pinned && !s.pm_b->pinned) {
+          s.pm_b->position += correction;
+        } else if (!s.pm_a->pinned && s.pm_b->pinned) {
+          s.pm_a->position -= correction;
+        } else if (!s.pm_a->pinned && !s.pm_b->pinned) {
+          s.pm_a->position -= correction * 0.5;
+          s.pm_b->position += correction * 0.5;
+        }  
+      }
+    }
 }
 
 void Cloth::build_spatial_map() {
