@@ -218,7 +218,33 @@ void Cloth::build_spatial_map() {
 
 void Cloth::self_collide(PointMass &pm, double simulation_steps) {
   // TODO (Part 4): Handle self-collision for a given point mass.
+    float bucket = hash_position(pm.position);
+    // Get vector of point masses occupying the same "bucket" (3D space) 
+    vector<PointMass *> *pms = map[bucket];
+    if (!pms)
+      return;
+    
+    Vector3D correction(0, 0, 0); // To append to pm's current position
+    int n = 0;
 
+    // Look at every neighbor of this point mass
+    for (PointMass *temp_pm : *pms) {
+    if (temp_pm == &pm)
+      continue; // Don't collide point mass with itself
+    Vector3D dir = pm.position - temp_pm->position; // Move it away from the temp pm
+    double dist = dir.norm();
+    if (dist <= 2 * thickness) { // If it's closer than twice the thickness of our cloth
+      double overlap = 2 * thickness - dist; 
+      correction += overlap * dir.unit(); // Move back overlap amount so it's 2 thickness apart
+      n+=1;
+    }
+
+    if (n > 0) {
+      pm.position = pm.position + correction / simulation_steps / (float) n; // the average of all of these pairwise correction vectors, scaled down by simulation_steps
+    }
+  }
+
+    
 }
 
 float Cloth::hash_position(Vector3D pos) {
