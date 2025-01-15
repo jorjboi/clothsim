@@ -28,6 +28,12 @@ void main() {
   // YOUR CODE HERE
   
   // (Placeholder code. You will want to replace it.)
-  out_color = (vec4(1, 1, 1, 0) + v_normal) / 2;
-  out_color.a = 1;
+    vec3 color = u_color.xyz;
+    vec3 n = normalize(v_normal.xyz);
+    vec3 l = u_light_pos - v_position.xyz; // Vector from light to vertex
+    float r_2 = dot(l, l);
+    l = normalize(l);
+    float dot_nl = max(dot(n, l), 0.0);
+    out_color = vec4((u_light_intensity / r_2) * dot_nl * color, 1);
+    out_color.a = 1;
 }

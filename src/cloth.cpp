@@ -229,21 +229,19 @@ void Cloth::self_collide(PointMass &pm, double simulation_steps) {
 
     // Look at every neighbor of this point mass
     for (PointMass *temp_pm : *pms) {
-    if (temp_pm == &pm)
-      continue; // Don't collide point mass with itself
-    Vector3D dir = pm.position - temp_pm->position; // Move it away from the temp pm
-    double dist = dir.norm();
-    if (dist <= 2 * thickness) { // If it's closer than twice the thickness of our cloth
-      double overlap = 2 * thickness - dist; 
-      correction += overlap * dir.unit(); // Move back overlap amount so it's 2 thickness apart
-      n+=1;
+      if (temp_pm == &pm)
+        continue; // Don't collide point mass with itself
+      Vector3D dir = pm.position - temp_pm->position; // Move it away from the temp pm
+      double dist = dir.norm();
+      if (dist <= 2 * thickness) { // If it's closer than twice the thickness of our cloth
+        double overlap = 2 * thickness - dist; 
+        correction += overlap * dir.unit(); // Move back overlap amount so it's 2 thickness apart
+        n+=1;
+      }    
     }
-
     if (n > 0) {
       pm.position = pm.position + correction / simulation_steps / (float) n; // the average of all of these pairwise correction vectors, scaled down by simulation_steps
     }
-  }
-
     
 }
 
