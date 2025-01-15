@@ -161,6 +161,10 @@ void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParame
   }
 
   // TODO (Part 4): Handle self-collisions.
+  build_spatial_map();
+  for (PointMass &pm : point_masses) {
+    self_collide(pm, simulation_steps);
+  }
 
 
   // TODO (Part 3): Handle collisions with other primitives.
@@ -199,7 +203,17 @@ void Cloth::build_spatial_map() {
   map.clear();
 
   // TODO (Part 4): Build a spatial map out of all of the point masses.
+  for (PointMass &pm : point_masses) {
+    float bucket = hash_position(pm.position);
 
+    if (map[bucket] != nullptr) {
+      map[bucket]->push_back(&pm);
+    } else {
+      vector<PointMass *> *pms = new vector<PointMass *>();
+      pms->push_back(&pm);
+      map[bucket] = pms;
+    }
+  }
 }
 
 void Cloth::self_collide(PointMass &pm, double simulation_steps) {
@@ -209,8 +223,17 @@ void Cloth::self_collide(PointMass &pm, double simulation_steps) {
 
 float Cloth::hash_position(Vector3D pos) {
   // TODO (Part 4): Hash a 3D position into a unique float identifier that represents membership in some 3D box volume.
+  int p = 223; // random prime number
 
-  return 0.f; 
+  float w = (width / num_width_points) * 3;
+  float h = (height / num_height_points) * 3;
+  float t = max(w, h);
+
+  float x = pos.x - fmod(pos.x, w);
+  float y = pos.y - fmod(pos.y, h);
+  float z = pos.z - fmod(pos.z, t);
+
+  return p * p * x + p * y + z;
 }
 
 ///////////////////////////////////////////////////////
