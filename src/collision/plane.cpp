@@ -12,7 +12,24 @@ using namespace CGL;
 
 void Plane::collide(PointMass &pm) {
   // TODO (Part 3): Handle collisions with planes.
+  // Check if the last position and the current position are on opposite
+  // sides of the plane.
+  double dist_to_last = dot(normal, pm.last_position - point);
+  double dist_to_cur = dot(normal, pm.position - point);
 
+  bool last_in_front = dist_to_last >= 0;
+  bool cur_in_front = dist_to_cur >= 0;
+
+  // If the point is on the same side as it was before, we don't collide
+  if (last_in_front == cur_in_front) {
+    return;
+  }
+
+  // Bump the point up to the surface of the plane
+  Vector3D bumped = pm.position - dist_to_cur * normal;
+  Vector3D bump_dir = bumped - pm.last_position;
+  Vector3D tangent = bump_dir - (dot(bump_dir, normal) - SURFACE_OFFSET) * normal;
+  pm.position = tangent * (1 - friction) + pm.last_position;
 }
 
 void Plane::render(GLShader &shader) {
