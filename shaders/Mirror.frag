@@ -12,7 +12,11 @@ in vec4 v_tangent;
 out vec4 out_color;
 
 void main() {
-  // YOUR CODE HERE
-  out_color = (vec4(1, 1, 1, 0) + v_normal) / 2;
-  out_color.a = 1;
+  vec3 norm = normalize(v_normal.xyz);
+  vec3 w_out = normalize(v_position.xyz - u_cam_pos);
+  vec3 w_in = reflect(w_out, norm);
+
+  // sample envrionment map using reflection directioin
+  vec4 env_color = texture(u_texture_cubemap, w_in);
+  out_color = vec4(env_color.xyz, 1.0);
 }

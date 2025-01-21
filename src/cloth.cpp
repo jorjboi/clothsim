@@ -132,7 +132,7 @@ void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParame
 
     // Use Hooke's law to calculate the force on either point mass
     Vector3D diff = s.pm_b->position - s.pm_a->position;
-    Vector3D normalized_diff = diff.unit(); // Positive unit direction vector
+    Vector3D normalized_diff = diff.unit(); //  unit direction vector
 
     double correction = cp->ks * (diff.norm() - s.rest_length); // F = kx 
 
@@ -140,7 +140,7 @@ void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParame
         correction *= 0.2f;
     }
 
-    Vector3D spring_force = normalized_diff * correction; // Force vector (positive)
+    Vector3D spring_force = normalized_diff * correction; // Force vector (directional)
     s.pm_a->forces += spring_force;
     s.pm_b->forces -= spring_force;
   }
@@ -256,7 +256,9 @@ float Cloth::hash_position(Vector3D pos) {
   float x = pos.x - fmod(pos.x, w);
   float y = pos.y - fmod(pos.y, h);
   float z = pos.z - fmod(pos.z, t);
-
+  
+  //unsigned int hash = (xi * 92837111) ^ (yi * 689287499) ^ (zi * 283923481);
+  // return std::abs(static_cast<int>(hash)); // Ensure the hash is positive
   return p * p * x + p * y + z;
 }
 
